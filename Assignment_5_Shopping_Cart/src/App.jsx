@@ -1,1 +1,123 @@
-import React,{createContext,useContext,useReducer,useState}from"react";import"./styles.css";const products=[{id:1,name:"React Book",price:500},{id:2,name:"JavaScript Book",price:450},{id:3,name:"Laptop Bag",price:1200},{id:4,name:"USB Keyboard",price:800}];const CartContext=createContext(null);function reducer(s,a){if(a.type==="add"){const x=s.find(i=>i.id===a.p.id);return x?s.map(i=>i.id===x.id?{...i,qty:i.qty+1}:i):[...s,{...a.p,qty:1]} }if(a.type==="remove")return s.filter(i=>i.id!==a.id);if(a.type==="qty")return s.map(i=>i.id===a.id?{...i,qty:Math.max(1,a.qty)}:i);return s}export default function App(){const[cart,dispatch]=useReducer(reducer,[]),[coupon,setCoupon]=useState(""),[applied,setApplied]=useState(false);const sub=cart.reduce((s,i)=>s+i.price*i.qty,0),discount=applied?sub*.1:0,gst=(sub-discount)*.18,total=sub-discount+gst;return <CartContext.Provider value={{cart,dispatch}}><main><h1>Online Shopping Cart</h1><section className="products">{products.map(p=><article key={p.id}><h3>{p.name}</h3><p>₹{p.price}</p><button onClick={()=>dispatch({type:"add",p})}>Add to Cart</button></article>)}</section><h2>Cart</h2>{cart.map(i=><div className="row" key={i.id}>{i.name} × {i.qty} = ₹{i.price*i.qty}<input type="number" min="1" value={i.qty} onChange={e=>dispatch({type:"qty",id:i.id,qty:Number(e.target.value)})}/><button onClick={()=>dispatch({type:"remove",id:i.id})}>Remove</button></div>)}<div className="summary"><p>Subtotal: ₹{sub.toFixed(2)}</p><p>Discount: ₹{discount.toFixed(2)}</p><p>GST (18%): ₹{gst.toFixed(2)}</p><h2>Grand Total: ₹{total.toFixed(2)}</h2><input placeholder="Coupon code (SAVE10)" value={coupon} onChange={e=>setCoupon(e.target.value)}/><button onClick={()=>setApplied(coupon.trim().toUpperCase()==="SAVE10")}>Apply Coupon</button></div></main></CartContext.Provider>}
+import React, { createContext, useReducer, useState } from "react";
+import "./styles.css";
+
+const products = [
+  { id: 1, name: "React Book", price: 500 },
+  { id: 2, name: "JavaScript Book", price: 450 },
+  { id: 3, name: "Laptop Bag", price: 1200 },
+  { id: 4, name: "USB Keyboard", price: 800 },
+];
+
+const CartContext = createContext(null);
+
+function reducer(state, action) {
+  if (action.type === "add") {
+    const existing = state.find((item) => item.id === action.p.id);
+
+    return existing
+      ? state.map((item) =>
+          item.id === existing.id
+            ? { ...item, qty: item.qty + 1 }
+            : item
+        )
+      : [...state, { ...action.p, qty: 1 }];
+  }
+
+  if (action.type === "remove") {
+    return state.filter((item) => item.id !== action.id);
+  }
+
+  if (action.type === "qty") {
+    return state.map((item) =>
+      item.id === action.id
+        ? { ...item, qty: Math.max(1, action.qty) }
+        : item
+    );
+  }
+
+  return state;
+}
+
+export default function App() {
+  const [cart, dispatch] = useReducer(reducer, []);
+  const [coupon, setCoupon] = useState("");
+  const [applied, setApplied] = useState(false);
+
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.price * item.qty,
+    0
+  );
+  const discount = applied ? subtotal * 0.1 : 0;
+  const gst = (subtotal - discount) * 0.18;
+  const total = subtotal - discount + gst;
+
+  return (
+    <CartContext.Provider value={{ cart, dispatch }}>
+      <main>
+        <h1>Online Shopping Cart</h1>
+
+        <section className="products">
+          {products.map((product) => (
+            <article key={product.id}>
+              <h3>{product.name}</h3>
+              <p>₹{product.price}</p>
+              <button
+                onClick={() => dispatch({ type: "add", p: product })}
+              >
+                Add to Cart
+              </button>
+            </article>
+          ))}
+        </section>
+
+        <h2>Cart</h2>
+
+        {cart.map((item) => (
+          <div className="row" key={item.id}>
+            {item.name} × {item.qty} = ₹{item.price * item.qty}
+
+            <input
+              type="number"
+              min="1"
+              value={item.qty}
+              onChange={(event) =>
+                dispatch({
+                  type: "qty",
+                  id: item.id,
+                  qty: Number(event.target.value),
+                })
+              }
+            />
+
+            <button
+              onClick={() => dispatch({ type: "remove", id: item.id })}
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+
+        <div className="summary">
+          <p>Subtotal: ₹{subtotal.toFixed(2)}</p>
+          <p>Discount: ₹{discount.toFixed(2)}</p>
+          <p>GST (18%): ₹{gst.toFixed(2)}</p>
+          <h2>Grand Total: ₹{total.toFixed(2)}</h2>
+
+          <input
+            placeholder="Coupon code (SAVE10)"
+            value={coupon}
+            onChange={(event) => setCoupon(event.target.value)}
+          />
+
+          <button
+            onClick={() =>
+              setApplied(coupon.trim().toUpperCase() === "SAVE10")
+            }
+          >
+            Apply Coupon
+          </button>
+        </div>
+      </main>
+    </CartContext.Provider>
+  );
+}
